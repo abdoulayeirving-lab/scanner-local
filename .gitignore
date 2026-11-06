@@ -1,0 +1,7 @@
+# Clés et données locales — ne jamais publier
+.env
+*.pem
+*.cer
+produits.db
+__pycache__/
+.scanner-temp/

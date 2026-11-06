@@ -1,0 +1,57 @@
+CONFIGURER LA CONNEXION GOOGLE — 3 MINUTES
+==========================================
+
+Tout est déjà prêt dans le dossier :
+  - .env contient votre Client ID et votre Client Secret (projet scanne-513916)
+  - le serveur choisit automatiquement la bonne adresse de redirection
+  - les boutons « Continuer avec Google » sont en place
+
+Il reste UNE seule action, car Google exige que les adresses de retour soient
+déclarées dans votre compte Google (impossible de le faire à distance sans votre
+mot de passe Google).
+
+ÉTAPES
+------
+1. Ouvrez ce lien (connecté avec le compte propriétaire du projet) :
+   https://console.cloud.google.com/auth/clients/968244243119-v5c6tme2kvfbpujdf23jfhj3gsa3vtks.apps.googleusercontent.com?project=scanne-513916
+
+2. Dans « URI de redirection autorisées », ajoutez EXACTEMENT ces deux lignes :
+   https://localhost:8443/auth/google/callback
+   https://192-168-1-6.nip.io:8443/auth/google/callback
+
+   (Si le champ n'apparaît pas : cliquez sur le client, puis « Modifier ».
+   Ne mettez ni espace ni slash final.)
+
+3. Cliquez sur « Enregistrer ». Attendez 1 à 5 minutes (propagation Google).
+
+4. Vérifiez l'écran de consentement :
+   https://console.cloud.google.com/auth/audience?project=scanne-513916
+   - Type « Externe » : ajoutez votre adresse Gmail dans « Utilisateurs test »
+     tant que l'application n'est pas publiée.
+   - Les scopes utilisés sont email, profile, openid (aucune vérification
+     spéciale nécessaire).
+
+5. Relancez le serveur :  python server.py
+   Il doit afficher « Connexion Google : activée » et les deux URI à autoriser.
+
+6. Sur le PC : https://localhost:8443/login → « Continuer avec Google ».
+
+7. Sur le téléphone (facultatif) : ouvrez https://192-168-1-6.nip.io:8443/login
+   (Internet nécessaire pour que ce nom trouve votre PC ; acceptez
+   l'avertissement de certificat une fois). Sinon, connectez-vous par email sur
+   le téléphone : c'est plus simple et cela fonctionne hors Internet.
+
+EN CAS D'ERREUR
+---------------
+« Error 400: redirect_uri_mismatch »
+   → l'URI affichée dans la barre d'adresse après le clic Google doit être
+     ajoutée à l'identique dans la console (lettre par lettre). Vérifiez que
+     l'étape 2 est bien enregistrée.
+
+« Accès bloqué : cette application n'a pas terminé la procédure de validation »
+   → ajoutez votre Gmail dans « Utilisateurs test » (étape 4).
+
+Rien ne se passe / bouton grisé
+   → les clés du .env sont vides ou le serveur n'a pas été relancé.
+
+Ne publiez jamais le fichier .env : il contient votre Client Secret.

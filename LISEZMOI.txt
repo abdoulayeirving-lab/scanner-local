@@ -1,0 +1,87 @@
+ENREGISTREUR DE PRODUITS PAR CODE-BARRES
+=========================================
+1. Décompressez ce dossier (clic droit > Extraire tout).
+2. Ouvrez PowerShell dans le dossier et installez les notifications :
+   python -m pip install -r requirements.txt
+3. Lancez le serveur :  python server.py
+4. Ouvrez https://localhost:8443 : la page de connexion s’affiche. Créez le compte de
+   votre boutique avec un email + mot de passe, ou avec Google (voir section COMPTES).
+   La première inscription reprend automatiquement les produits déjà présents dans
+   produits.db (boutique locale existante), rien n’est perdu.
+5. Sur Windows, ouvrez https://localhost:8443 puis cliquez sur « Scanner sur cet appareil »
+   pour utiliser la caméra du PC et garder le PC comme serveur.
+6. Pour scanner depuis un téléphone, connectez-vous d’abord sur le téléphone avec le même
+   compte (une seule fois : la session dure 30 jours), puis cliquez sur
+   « Activer le scan par téléphone » sur le PC. Le QR code et le lien du scanner distant
+   s’affichent alors.
+7. Sur Windows, si Chrome affiche encore « connexion non privée », approuvez une seule
+   fois le certificat local depuis PowerShell :
+   certutil -user -addstore -f Root ".\scanner-ca.cer"
+   Fermez puis rouvrez Chrome.
+8. Sur le téléphone connecté au même Wi-Fi, ouvrez le QR code et autorisez la caméra.
+   Pour activer la caméra du téléphone sans avertissement et la reconnexion automatique
+   les fois suivantes, touchez « Télécharger le certificat (connexion automatique) » sur le PC
+   (ou ouvrez https://ADRESSE_DU_PC:8443/scanner-ca.cer sur le téléphone) et installez
+   le fichier téléchargé comme certificat CA. N’envoyez jamais
+   root-ca-key.pem à un autre appareil.
+
+Les produits, leurs dates d'expiration et les abonnements aux notifications sont
+enregistrés sur le PC dans produits.db. Les données restent disponibles après
+fermeture du programme.
+La clé privée Web Push est conservée dans push_private.pem : ne supprimez pas ce
+fichier, sinon les appareils devront activer de nouveau leurs alertes.
+
+Mode hors ligne : après le premier chargement, l'interface et les composants de
+scan sont mis en cache et ne nécessitent plus Internet. La caméra sur le PC
+continue d'enregistrer directement dans la base locale. Pour utiliser un
+téléphone sans Internet, gardez le PC allumé et les deux appareils connectés au
+même Wi-Fi (le réseau local fonctionne sans accès Internet). Si le serveur PC
+s'arrête, le téléphone ne peut pas synchroniser ni enregistrer les produits.
+Les bibliothèques de scan et de QR sont fournies localement dans vendor/ avec
+leurs licences.
+
+Pour enregistrer une date d'expiration, scannez le produit, remplissez la date,
+puis enregistrez. Une alerte est envoyée jusqu'à 7 jours avant l'expiration,
+puis une autre quand le produit est expiré. Le PC doit rester allumé, connecté
+au réseau local et le serveur doit rester démarré pour déclencher ces alertes.
+Activez les alertes sur chaque appareil avec le bouton « Activer les alertes ».
+Pour personnaliser le contact Web Push, modifiez la ligne VAPID_SUBJECT du fichier .env :
+   VAPID_SUBJECT=mailto:votre-adresse@example.com
+
+Le tableau de bord s’adapte aux écrans mobiles et Windows. La liste des produits
+devient compacte sur téléphone. Le scan distant reste désactivé tant qu’il n’est
+pas activé sur le PC.
+
+COMPTES ET BOUTIQUES
+====================
+Chaque boutique possède son propre compte : produits, dates d’expiration, alertes
+et abonnements push sont séparés des autres boutiques. Un même code-barres peut
+exister dans plusieurs boutiques.
+
+- Inscription / connexion : https://localhost:8443/login
+- Email + mot de passe : le mot de passe est stocké haché (PBKDF2-SHA256), jamais
+  en clair. Session par cookie sécurisé valable 30 jours (le téléphone reste donc
+  connecté, pas besoin de se reconnecter à chaque scan).
+- Google : bouton « Continuer avec Google ». Les clés du projet Google sont déjà
+  enregistrées dans le fichier .env (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET).
+  Il reste à autoriser les URI de redirection dans Google Cloud Console
+  (Clients OAuth → votre client Web → « URI de redirection autorisées ») :
+     https://localhost:8443/auth/google/callback
+     https://192-168-1-6.nip.io:8443/auth/google/callback
+  La première fonctionne sur le PC (https://localhost:8443). La seconde permet la
+  connexion Google depuis le téléphone : nip.io est un nom de domaine public qui
+  pointe vers 192.168.1.6 (Internet requis pour la résolution DNS). Sur le
+  téléphone, ouvrez https://192-168-1-6.nip.io:8443 ; le certificat local ne couvre
+  pas ce nom, acceptez donc l'avertissement une fois (ou utilisez la connexion par
+  email sur le téléphone, qui reste la plus simple).
+  Le serveur choisit automatiquement la bonne URI selon l'adresse consultée.
+  Si l’URI contient une adresse IP locale, Google la refuse : utilisez localhost
+  sur le PC ou le nom nip.io sur le téléphone.
+- Déconnexion : bouton « Déconnexion » en haut du tableau de bord.
+- Le premier compte créé reprend la boutique locale déjà présente dans produits.db.
+
+Important : les notifications lorsque le navigateur est fermé nécessitent un
+contexte HTTPS reconnu comme sécurisé par le navigateur. Le certificat local
+est signé par scanner-ca.cer; approuvez-le sur chaque appareil utilisé. Le navigateur doit également prendre en charge
+les notifications Push. Les notifications Web Push nécessitent une connexion
+Internet ; le scan et l'enregistrement local continuent sans Internet.
