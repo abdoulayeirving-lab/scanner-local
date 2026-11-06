@@ -5,3 +5,5 @@
 produits.db
 __pycache__/
 .scanner-temp/
+
+.vercel

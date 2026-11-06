@@ -13,7 +13,8 @@ https://github.com/abdoulayeirving-lab/scanner-local
 - Création de compte par email + mot de passe.
 - Connexion par Google (le bouton est actif).
 - Un stock séparé par boutique.
-- Scan des codes-barres depuis n'importe quel téléphone (/scan).
+- Scan depuis n'importe quel téléphone via /scan (caméra).
+- Scan par téléphone : QR + **jumelage automatique** (`/scan?pair=TOKEN`).
 - Produits, recherche, statistiques, export CSV.
 - Alertes d'expiration par notification Web Push (même application fermée),
   envoyées automatiquement chaque jour à 8h UTC.
@@ -23,7 +24,19 @@ Base de données : PostgreSQL Neon, déjà connectée au projet Vercel.
 Les tables sont préfixées « stock_ » et sont indépendantes des autres projets.
 
 
-2) UNE SEULE CHOSE À FAIRE DANS GOOGLE CLOUD CONSOLE
+2) SCAN PAR TÉLÉPHONE (AUTO-JUMEAU)
+----------------------------------
+Le QR code du tableau de bord contient une URL du type :
+https://<domaine-vercel>.app/scan?pair=<TOKEN>
+
+En scannant ce QR avec le téléphone, le scanner se connecte
+automatiquement à la boutique du PC via un token de jumelage (1 h).
+
+Pour régénérer un QR : ouvrir le tableau de bord connecté sur le PC
+(les tokens sont rafraîchis automatiquement toutes les minutes).
+
+
+3) UNE SEULE CHOSE À FAIRE DANS GOOGLE CLOUD CONSOLE
 ---------------------------------------------------
 La connexion Google ne fonctionnera qu'après avoir ajouté l'adresse de retour
 (URI de redirection) ci-dessous au client OAuth existant.
@@ -47,7 +60,7 @@ Si l'écran de consentement OAuth est en mode « Test », ajoutez votre compte
 Google dans « Utilisateurs de test », sinon passez l'application en « Production ».
 
 
-3) NOTIFICATIONS
+4) NOTIFICATIONS
 ----------------
 Sur chaque appareil : ouvrir l'application, se connecter, puis toucher
 « Activer les alertes » et autoriser les notifications.
@@ -55,7 +68,7 @@ L'iPhone demande d'installer d'abord l'application sur l'écran d'accueil
 (Safari → Partager → « Sur l'écran d'accueil ») pour recevoir le Web Push.
 
 
-4) FICHIERS
+5) FICHIERS
 -----------
 - cloud/ ............ application Next.js déployée sur Vercel
 - server.py ......... application locale (Wi-Fi, certificat, scan hors ligne)

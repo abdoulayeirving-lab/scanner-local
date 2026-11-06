@@ -147,5 +147,16 @@ async function start(){
   document.head.appendChild(sc);
  }
 }
-start().catch(e=>cameraFailed('Caméra refusée ou indisponible. Autorisez-la dans le navigateur.'));
+async function pairAndStart(){
+ try{
+  const params=new URLSearchParams(location.search);
+  const token=params.get('pair');
+  if(token){
+   const response=await fetch('/api/auth/pair',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token})});
+   if(response.ok)history.replaceState(null,'',location.pathname);
+  }
+ }catch(e){}
+ await start();
+}
+pairAndStart().catch(e=>cameraFailed('Caméra refusée ou indisponible. Autorisez-la dans le navigateur.'));
 </script></body></html>

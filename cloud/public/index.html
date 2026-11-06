@@ -134,7 +134,7 @@ tr.flash td{animation:flash 4s ease-out}
  <aside class="card connect remote-panel" id="remote-panel">
   <div id="qr"></div>
   <div class="remote-copy">
-   <h2>Scanner avec le téléphone</h2><p>Scannez ce QR code avec l’appareil photo du téléphone. Le scanner s’ouvre directement : les produits ajoutés apparaissent ici.</p>
+   <h2>Scanner avec le téléphone</h2><p>Scannez ce QR code avec l’appareil photo du téléphone. Le scanner s’ouvre automatiquement et se connecte directement à votre compte. Scannez ensuite le code-barres : le produit est enregistré ici.</p>
    <a class="url" id="scan-url" href="/scan">/scan</a>
    <ol><li>Autorisez l’accès à la caméra au premier lancement</li><li>Scannez le code-barres : le produit est enregistré dans votre boutique</li></ol>
   </div>
@@ -159,17 +159,18 @@ tr.flash td{animation:flash 4s ease-out}
 <script src="/auth.js"></script>
 <script src="/notifications.js"></script>
 <script>
-let data=[],seen=null,flashIds=new Set(),remoteUrl='';
+let data=[],seen=null,flashIds=new Set(),scanUrl='';
 const $=i=>document.getElementById(i);
 stockLoadProfile().then(profile=>{if(profile)$('shop-name').textContent=profile.name});
 $('logout').addEventListener('click',()=>stockLogout());
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fmt=n=>Number(n||0).toLocaleString('fr-FR');
 const expiryDays=p=>p.expiration_date?Math.ceil((Date.parse(p.expiration_date+'T00:00:00Z')-Date.parse(new Date().toISOString().slice(0,10)+'T00:00:00Z'))/86400000):null;
-async function info(){const response=await fetch('/api/info');if(!response.ok)throw new Error('Informations serveur indisponibles');const result=await response.json();remoteUrl=result.scan_url||location.origin+'/scan';showScanLink()}
-function showScanLink(){
- const link=$('scan-url');link.href=remoteUrl;link.textContent=remoteUrl;
- try{new QRCode($('qr'),{text:remoteUrl,width:150,height:150})}catch(error){$('qr').textContent='QR indisponible'}
+async function info(){const response=await fetch('/api/info');if(!response.ok)throw new Error('Informations serveur indisponibles');const result=await response.json();const url=(result.pair&&result.pair.url)?result.pair.url:(result.scan_url||location.origin+'/scan');showScanLink(url)}
+function showScanLink(url){
+ scanUrl=url;
+ const link=$('scan-url');link.href=url;link.textContent=url;
+ try{new QRCode($('qr'),{text:url,width:150,height:150})}catch(error){$('qr').textContent='QR indisponible'}
 }
 function setConnectionState(state,text){$('dot').className='dot '+state;$('last').textContent=text}
 async function load(){
