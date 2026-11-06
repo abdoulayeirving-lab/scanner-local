@@ -1,0 +1,151 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B1514"><title>Scanner · Stock</title>
+<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icon.svg" type="image/svg+xml">
+<style>
+:root{color-scheme:dark;--ink:#E8F0ED;--mut:#8DA29E;--panel:#122220;--line:#24403C;--mango:#F5A623;--ok:#4CC38A;--brand:#1D6B64}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;background:#0B1514;color:var(--ink);font:16px/1.4 Figtree,system-ui,sans-serif;overflow:hidden}
+h2,.big{font-family:"Bricolage Grotesque",Figtree,sans-serif;letter-spacing:-.02em}
+.stage{position:fixed;inset:0;background:#000}
+video,#reader{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#reader video{object-fit:cover!important}
+.shade{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,.35),transparent 18%,transparent 76%,rgba(0,0,0,.3));pointer-events:none}
+.bar{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:max(14px,env(safe-area-inset-top)) 16px 10px;background:linear-gradient(#000a,transparent);z-index:3}
+.pill{background:rgba(18,34,32,.8);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:99px;padding:8px 14px;font-weight:600;font-size:14px;display:flex;gap:8px;align-items:center}
+.pill button{all:unset;cursor:pointer;display:flex}
+.hint{position:absolute;left:50%;bottom:max(24px,env(safe-area-inset-bottom));transform:translateX(-50%);max-width:calc(100% - 32px);padding:10px 16px;border:1px solid rgba(255,255,255,.2);border-radius:999px;background:rgba(0,0,0,.58);text-align:center;z-index:2;color:#fff;font-weight:500;pointer-events:none}
+.scanner-start{position:fixed;inset:0;z-index:10;display:grid;place-items:center;background:rgba(7,15,14,.92);transition:opacity .35s ease,visibility .35s ease}
+.scanner-start.hide{opacity:0;visibility:hidden;pointer-events:none}
+.scanner-start-content{display:grid;justify-items:center;gap:12px;color:var(--ink);font-weight:600}
+.scanner-app-icon{width:68px;height:68px;border-radius:20px;box-shadow:0 8px 26px #0008;animation:scanner-arrive .55s cubic-bezier(.2,.8,.2,1) both,scanner-breathe 1.5s ease-in-out .55s infinite}
+.scanner-spinner{width:22px;height:22px;border:2px solid var(--line);border-top-color:var(--mango);border-radius:50%;animation:scanner-spin .7s linear infinite}
+@keyframes scanner-arrive{from{opacity:0;transform:translateY(10px) scale(.8)}to{opacity:1;transform:none}}
+@keyframes scanner-breathe{50%{transform:translateY(-3px)}}
+@keyframes scanner-spin{to{transform:rotate(360deg)}}
+.sheet.open{animation:sheet-arrive .3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes sheet-arrive{from{opacity:.6}to{opacity:1}}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:5;max-height:88dvh;overflow-y:auto;background:var(--panel);border-radius:22px 22px 0 0;border-top:1px solid var(--line);padding:14px 16px max(14px,env(safe-area-inset-bottom));transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);box-shadow:0 -20px 40px rgba(0,0,0,.4)}
+.sheet.open{transform:none}
+.tag{display:inline-block;font-size:13px;font-weight:600;padding:3px 10px;border-radius:99px;margin-bottom:8px}
+.tag.new{background:rgba(245,166,35,.16);color:var(--mango)}.tag.known{background:rgba(76,195,138,.16);color:var(--ok)}
+.code{color:var(--mut);font-size:14px;margin:0 0 10px;font-variant-numeric:tabular-nums}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+input{width:100%;padding:13px 14px;font:inherit;font-size:17px;color:var(--ink);background:#0B1514;border:1px solid var(--line);border-radius:12px}
+.help{margin:4px 0 0;color:var(--mut);font-size:12px}
+input:focus{outline:2px solid var(--mango);outline-offset:1px;border-color:transparent}
+.row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}
+.step{display:flex;align-items:center;background:#0B1514;border:1px solid var(--line);border-radius:12px}
+.step button{all:unset;width:48px;height:48px;text-align:center;font-size:24px;cursor:pointer;color:var(--mango)}
+.step input{width:56px;text-align:center;border:0;background:none;padding:0}
+.actions{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:16px}
+.btn{all:unset;box-sizing:border-box;text-align:center;padding:15px;border-radius:13px;font-weight:600;cursor:pointer;background:#1c332f}
+.btn.main{background:var(--mango);color:#1a1200;font-size:17px}
+.toast{position:fixed;left:50%;top:max(70px,calc(env(safe-area-inset-top) + 56px));transform:translate(-50%,-20px);opacity:0;z-index:9;background:var(--ok);color:#052415;font-weight:600;padding:10px 18px;border-radius:99px;transition:.25s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}.toast.err{background:#E36A6A;color:#2a0505}
+@media(max-height:700px){
+ .sheet{max-height:76dvh;padding-top:10px}
+ label{margin-top:7px}
+ input{padding:10px 12px}
+ .actions{margin-top:10px}
+}
+@media(max-width:480px){
+ .bar{padding-left:9px;padding-right:9px;gap:6px}
+ .pill{padding:7px 9px;font-size:12px}
+ #enable-notifications{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div class="stage"><video id="cam" playsinline muted></video><div id="reader"></div><div class="shade"></div></div>
+<div class="bar"><a class="pill" href="/" style="color:inherit;text-decoration:none"><span class="big" style="font-size:16px">Stock</span></a>
+ <button class="pill" id="enable-notifications" type="button">Activer alertes / bip</button>
+ <div class="pill"><span id="count">0 scanné</span><button id="torch" aria-label="Lampe" hidden>
+ <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 2h6l-1 6h-4zM10 8v3l-2 3v8h8v-8l-2-3V8"/></svg></button></div></div>
+<div class="hint" id="hint">Présentez le code-barres n’importe où dans l’image</div>
+<div class="scanner-start" id="scanner-start" role="status" aria-label="Activation de la caméra">
+ <div class="scanner-start-content"><img class="scanner-app-icon" src="/icon.svg" alt=""><span class="scanner-spinner"></span><span id="scanner-start-text">Activation de la caméra…</span></div>
+</div>
+<div class="toast" id="toast"></div>
+<section class="sheet" id="sheet" aria-live="polite">
+ <span class="tag new" id="tag">Nouveau produit</span>
+ <p class="code" id="codeTxt"></p>
+ <label for="name">Nom du produit</label><input id="name" placeholder="Ex. Huile 1 L" autocomplete="off">
+ <label for="expiration">Date d’expiration</label><input id="expiration" type="text" inputmode="text" enterkeyhint="done" maxlength="10" placeholder="JJ/MM/AAAA" autocomplete="off" aria-describedby="expiration-help">
+ <p class="help" id="expiration-help">Format fixe : jour/mois/année (ex. 05/11/2027). Alerte jusqu’à 7 jours avant l’expiration si les notifications sont activées.</p>
+ <div class="row"><div><label for="price">Prix (FCFA)</label><input id="price" inputmode="decimal" placeholder="0"></div>
+ <div><label for="qty">Quantité</label><div class="step"><button onclick="step(-1)" aria-label="Moins">−</button><input id="qty" inputmode="numeric" value="1"><button onclick="step(1)" aria-label="Plus">+</button></div></div></div>
+ <div class="actions"><button class="btn" onclick="cancel()">Annuler</button><button class="btn main" onclick="save()">Enregistrer</button></div>
+</section>
+<script src="/auth.js"></script>
+<script src="/notifications.js"></script>
+<script>
+let paused=false,count=0,currentCode='',track=null;const $=i=>document.getElementById(i);
+function toast(t,err){const e=$('toast');e.textContent=t;e.className='toast show'+(err?' err':'');setTimeout(()=>e.className='toast',1800)}
+function cameraReady(){ $('hint').textContent='Toute l’image est disponible pour le scan';$('scanner-start').classList.add('hide') }
+function cameraFailed(message){$('hint').textContent=message;$('scanner-start-text').textContent=message;$('scanner-start').classList.add('hide')}
+function beep(){window.scannerBeep?.()}
+function step(d){const q=$('qty');q.value=Math.max(1,(parseInt(q.value)||1)+d)}
+function expirationToDisplay(value){return value?`${value.slice(8,10)}/${value.slice(5,7)}/${value.slice(0,4)}`:''}
+function expirationToStorage(value){
+ if(!value)return null;
+ const match=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+ if(!match)throw new Error('Saisissez la date au format JJ/MM/AAAA.');
+ const day=Number(match[1]),month=Number(match[2]),year=Number(match[3]);
+ const leap=year%4===0&&(year%100!==0||year%400===0);
+ const daysInMonth=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
+ if(year<1||month<1||month>12||day<1||day>daysInMonth[month-1])throw new Error('Cette date n’existe pas. Utilisez le format JJ/MM/AAAA.');
+ return `${String(year).padStart(4,'0')}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+$('expiration').addEventListener('keydown',event=>{
+ if(event.key==='Enter'){event.preventDefault();event.currentTarget.blur()}
+ if(event.key===' '||event.key==='Spacebar')event.preventDefault();
+});
+$('expiration').addEventListener('input',event=>{
+ const input=event.currentTarget;
+ if(/\s/.test(input.value)){
+  const position=input.selectionStart;
+  input.value=input.value.replace(/\s/g,'');
+  input.setSelectionRange(Math.max(0,position-1),Math.max(0,position-1));
+ }
+});
+async function onCode(code){
+ if(paused)return;paused=true;currentCode=code;navigator.vibrate&&navigator.vibrate(100);beep();
+ let p={};try{const response=await fetch('/api/product?code='+encodeURIComponent(code));if(!response.ok)throw new Error('Serveur indisponible');p=await response.json()}catch(e){toast('Impossible de lire le produit sur le serveur',true);paused=false;return}
+ const known=!!p.code;
+ $('tag').textContent=known?'Déjà en stock : '+p.qty:'Nouveau produit';$('tag').className='tag '+(known?'known':'new');
+ $('codeTxt').textContent='Code '+code;$('name').value=p.name||'';$('price').value=p.price??'';$('qty').value=1;$('expiration').value=expirationToDisplay(p.expiration_date||'');
+ $('sheet').classList.add('open');if(!known)setTimeout(()=>$('name').focus(),300);
+}
+async function save(){
+ let expiration;
+ try{expiration=expirationToStorage($('expiration').value.trim())}
+ catch(error){toast(error.message,true);$('expiration').focus();return}
+ const body={code:currentCode,name:$('name').value.trim(),price:$('price').value,qty:$('qty').value,expiration_date:expiration};
+ try{const r=await fetch('/api/products',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok){const error=await r.json();throw new Error(error.error||'Enregistrement refusé')}
+  count++;$('count').textContent=count+(count>1?' scannés':' scanné');toast('Enregistré sur l’ordinateur');close()}
+ catch(e){toast(e.message||'Ordinateur injoignable : vérifiez le Wi-Fi',true)}
+}
+function cancel(){close()}
+function close(){$('sheet').classList.remove('open');document.activeElement.blur();
+ setTimeout(()=>{paused=false},700)}
+async function start(){
+ if('BarcodeDetector' in window){
+  const det=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','code_128','code_39','qr_code']});
+  const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+  const v=$('cam');v.srcObject=s;await v.play();
+  cameraReady();
+  track=s.getVideoTracks()[0];const caps=track.getCapabilities?track.getCapabilities():{};
+  if(caps.torch){$('torch').hidden=false;let on=false;$('torch').onclick=()=>{on=!on;track.applyConstraints({advanced:[{torch:on}]})}}
+  setInterval(async()=>{if(paused)return;try{const r=await det.detect(v);if(r.length)onCode(r[0].rawValue)}catch(e){}},250);
+ }else{
+  $('cam').style.display='none';
+  const sc=document.createElement('script');sc.src='/vendor/html5-qrcode.min.js';
+  sc.onload=()=>new Html5Qrcode('reader').start({facingMode:'environment'},{fps:10},onCode)
+   .then(cameraReady).catch(e=>cameraFailed('Caméra indisponible : '+e));
+  sc.onerror=()=>cameraFailed('Moteur de scan indisponible. Rechargez la page.');
+  document.head.appendChild(sc);
+ }
+}
+start().catch(e=>cameraFailed('Caméra refusée ou indisponible. Autorisez-la dans le navigateur.'));
+</script></body></html>

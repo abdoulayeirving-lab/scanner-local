@@ -1,0 +1,201 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stock · Enregistreur de produits</title>
+<link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#EEF2EF;--panel:#fff;--ink:#10211F;--mut:#5E716E;--line:#D9E2DE;--brand:#0F3D3A;--brand-ink:#fff;--mango:#F5A623;--flash:#FFF1D6;--red:#C93C3C;--shadow:0 1px 2px rgba(16,33,31,.06),0 8px 24px -12px rgba(16,33,31,.18)}
+@media(prefers-color-scheme:dark){:root{--bg:#0B1514;--panel:#122220;--ink:#E8F0ED;--mut:#8DA29E;--line:#1F3431;--brand:#1D6B64;--flash:#3A2D10;--red:#E36A6A;--shadow:none}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif}
+h1,h2,.num{font-family:"Bricolage Grotesque",Figtree,system-ui,sans-serif;letter-spacing:-.02em}
+.wrap{max-width:1120px;margin:0 auto;padding:22px 18px 48px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+h1{margin:0;font-size:30px;line-height:1.1}
+.live{display:flex;align-items:center;gap:8px;color:var(--mut);font-size:14px;transition:color .25s ease}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--mango);box-shadow:0 0 0 0 rgba(245,166,35,.6)}
+.dot.pulse{animation:pulse 1.2s ease-out 2}
+@keyframes pulse{to{box-shadow:0 0 0 12px rgba(245,166,35,0)}}
+.dot.connecting{animation:connect-pulse 1s ease-in-out infinite}
+.dot.connected{background:var(--ok,#4CC38A)}
+.dot.disconnected{background:var(--red)}
+@keyframes connect-pulse{50%{opacity:.35;transform:scale(.75)}}
+.app-header{display:flex;align-items:center;gap:10px}
+.shop-name{font-size:13px;color:var(--mut);background:var(--panel);border:1px solid var(--line);padding:5px 10px;border-radius:999px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.app-icon{width:38px;height:38px;border-radius:11px;box-shadow:0 3px 10px rgba(15,61,58,.18);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.app-icon:hover{transform:rotate(-7deg) scale(1.06)}
+.splash{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:var(--bg);transition:opacity .35s ease,visibility .35s ease}
+.splash.hide{opacity:0;visibility:hidden;pointer-events:none}
+.splash-content{display:grid;justify-items:center;gap:14px;color:var(--mut);font-size:14px}
+.splash-icon{width:76px;height:76px;border-radius:22px;box-shadow:0 10px 28px rgba(15,61,58,.18);animation:icon-arrive .7s cubic-bezier(.2,.8,.2,1) both,splash-breathe 1.6s ease-in-out .7s infinite}
+.splash-ring{position:absolute;width:106px;height:106px;border:2px solid var(--mango);border-radius:28px;animation:ring-arrive .9s ease-out both}
+@keyframes icon-arrive{from{opacity:0;transform:translateY(12px) scale(.82)}to{opacity:1;transform:none}}
+@keyframes splash-breathe{50%{transform:translateY(-3px) scale(1.025)}}
+@keyframes ring-arrive{from{opacity:0;transform:scale(.78)}to{opacity:.3;transform:scale(1)}}
+.spinner{width:18px;height:18px;border:2px solid var(--line);border-top-color:var(--brand);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.page-content{animation:page-arrive .45s ease-out both}
+@keyframes page-arrive{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.grid{display:grid;grid-template-columns:minmax(0,1fr);gap:14px;align-items:start}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow)}
+.connect{padding:20px;background:var(--brand);color:var(--brand-ink);border-color:transparent}
+.connect h2{margin:0 0 4px;font-size:20px}
+.connect p{margin:0 0 14px;opacity:.8;font-size:14px}
+#qr{background:#fff;padding:12px;border-radius:12px;width:max-content;margin-bottom:12px}
+#qr:empty{display:none}
+.url{font-size:13px;word-break:break-all;background:rgba(255,255,255,.12);padding:8px 10px;border-radius:8px}
+.connect ol{margin:14px 0 0;padding-left:18px;font-size:14px;opacity:.9}
+.scan-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.scan-actions .btn{min-height:44px}
+.remote-panel[hidden]{display:none}
+.remote-panel{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+#qr{flex:0 0 auto;background:#fff;padding:8px;border-radius:10px;width:max-content}
+#qr:empty{display:none}
+.remote-copy{min-width:0}
+.remote-copy h2{margin:0 0 4px;font-size:18px}
+.remote-copy p{margin:0 0 8px;opacity:.85;font-size:14px}
+.remote-copy ol{margin:8px 0 0;padding-left:18px;font-size:13px;opacity:.9}
+.url{font-size:13px;word-break:break-all;background:rgba(255,255,255,.12);padding:8px 10px;border-radius:8px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);margin-bottom:14px}
+.stat{padding:14px 18px}.stat+.stat{border-left:1px solid var(--line)}
+.stat .num{font-size:32px;font-weight:700;line-height:1.1}
+.stat span{color:var(--mut);font-size:14px}
+@media(max-width:700px){.stats{grid-template-columns:repeat(2,1fr)}.stat:nth-child(3){border-left:0;border-top:1px solid var(--line)}.stat:nth-child(4){border-top:1px solid var(--line)}}
+@media(max-width:520px){.stat{padding:14px 12px}.stat .num{font-size:22px}}
+.tools{display:flex;gap:8px;padding:12px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.search{flex:1;position:relative}
+.search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mut)}
+input.q{width:100%;padding:11px 12px 11px 38px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+input.q:focus-visible,.btn:focus-visible,.del:focus-visible{outline:2px solid var(--mango);outline-offset:2px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:9px 12px;border-radius:10px;background:var(--ink);color:var(--bg);text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap}
+.btn.secondary{border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+.btn:disabled{opacity:.6;cursor:wait}
+.btn.busy::before{content:"";width:13px;height:13px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .65s linear infinite}
+.remote-panel{animation:page-arrive .3s ease-out both}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:760px}
+th{text-align:left;font-weight:500;color:var(--mut);font-size:13px;padding:10px 14px}
+td{padding:12px 14px;border-top:1px solid var(--line)}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.code{font-variant-numeric:tabular-nums;color:var(--mut);font-size:14px}
+.name{font-weight:600}
+tr.flash td{animation:flash 4s ease-out}
+.expiry{font-size:13px;font-weight:600;white-space:nowrap}
+.expiry.soon{color:var(--red)}
+.expiry.ok{color:var(--mut)}
+@keyframes flash{0%,60%{background:var(--flash)}100%{background:transparent}}
+.del{border:0;background:none;color:var(--mut);cursor:pointer;padding:6px;border-radius:8px}
+.del:hover{color:var(--red);transform:scale(1.08)}
+.empty{padding:48px 20px;text-align:center;color:var(--mut)}
+.empty b{display:block;color:var(--ink);font-size:18px;margin-bottom:4px;font-family:"Bricolage Grotesque",sans-serif}
+@media(max-width:640px){
+ .wrap{padding:12px 10px 28px}
+ header{margin-bottom:12px}
+ h1{font-size:25px}
+ .live{font-size:12px}
+ .scan-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+ .scan-actions .btn{white-space:normal;text-align:center;padding:9px 8px;font-size:13px}
+ .remote-panel{align-items:flex-start;padding:12px;gap:10px}
+ #qr{padding:6px}
+ #qr canvas,#qr img{width:112px!important;height:112px!important}
+ .remote-copy h2{font-size:16px}
+ .remote-copy p,.remote-copy ol{font-size:12px}
+ .stats{margin-bottom:10px}
+ .stat{padding:10px 12px}
+ .stat .num{font-size:22px}
+ .stat span{font-size:12px}
+ .tools{padding:9px}
+ .search{flex-basis:100%}
+ .tools .btn{flex:1;font-size:12px;padding:8px 6px}
+ .scroll{overflow:visible}
+ table{min-width:0;display:block}
+ thead{display:none}
+ tbody{display:grid;gap:8px;padding:8px}
+ tbody tr{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+ tbody td{min-width:0;padding:0;border:0;text-align:left!important;overflow-wrap:anywhere}
+ tbody td::before{content:attr(data-label);display:block;margin-bottom:1px;color:var(--mut);font-size:10px;font-weight:500}
+ tbody td.name{grid-column:1/-1;font-size:15px}
+ tbody td.name::before{content:none}
+ tbody td.code{font-size:12px}
+ tbody td:last-child{grid-column:1/-1;text-align:right!important}
+ tbody td:last-child::before{content:none}
+ .empty{padding:30px 16px}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+</style></head><body><div class="wrap">
+<div class="splash" id="splash" role="status" aria-label="Ouverture de Stock">
+ <div class="splash-content"><div style="position:relative;display:grid;place-items:center"><span class="splash-ring"></span><img class="splash-icon" src="/icon.svg" alt=""></div><div class="spinner"></div><span>Ouverture de Stock…</span></div>
+</div>
+<header class="page-content"><div class="app-header"><img class="app-icon" src="/icon.svg" alt=""><h1>Stock</h1><span class="shop-name" id="shop-name"></span></div><div class="live" aria-live="polite"><span class="dot connecting" id="dot"></span><span id="last">Connexion au serveur…</span><button class="btn secondary" id="logout" type="button" style="padding:6px 10px">Déconnexion</button></div></header>
+<div class="grid">
+<main class="page-content">
+ <div class="scan-actions">
+  <a class="btn" href="/scan">Scanner sur cet appareil</a>
+  <a class="btn secondary" href="/scan" id="scan-link">Ouvrir le scanner sur le téléphone</a>
+ </div>
+ <aside class="card connect remote-panel" id="remote-panel">
+  <div id="qr"></div>
+  <div class="remote-copy">
+   <h2>Scanner avec le téléphone</h2><p>Scannez ce QR code avec l’appareil photo du téléphone. Le scanner s’ouvre directement : les produits ajoutés apparaissent ici.</p>
+   <a class="url" id="scan-url" href="/scan">/scan</a>
+   <ol><li>Autorisez l’accès à la caméra au premier lancement</li><li>Scannez le code-barres : le produit est enregistré dans votre boutique</li></ol>
+  </div>
+ </aside>
+ <div class="card stats">
+  <div class="stat"><div class="num" id="s1">0</div><span>produits</span></div>
+  <div class="stat"><div class="num" id="s2">0</div><span>unités en stock</span></div>
+  <div class="stat"><div class="num" id="s3">0</div><span>valeur (FCFA)</span></div>
+  <div class="stat"><div class="num" id="s4">0</div><span>à surveiller</span></div>
+ </div>
+ <div class="card">
+  <div class="tools"><div class="search">
+   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+   <input class="q" id="s" placeholder="Rechercher un nom ou un code" oninput="draw()"></div>
+   <button class="btn secondary" id="enable-notifications" type="button">Activer les alertes</button>
+   <a class="btn" href="/export.csv">Exporter CSV</a></div>
+  <div class="scroll"><table><thead><tr><th>Produit</th><th>Code</th><th>Expiration</th><th class="r">Prix</th><th class="r">Qté</th><th></th></tr></thead><tbody id="b"></tbody></table></div>
+  <div class="empty" id="empty" hidden><b>Aucun produit pour l’instant</b>Scannez un code-barres avec le téléphone, il apparaîtra ici.</div>
+ </div>
+</main></div></div>
+<script src="/vendor/qrcode.min.js"></script>
+<script src="/auth.js"></script>
+<script src="/notifications.js"></script>
+<script>
+let data=[],seen=null,flashIds=new Set(),remoteUrl='';
+const $=i=>document.getElementById(i);
+stockLoadProfile().then(profile=>{if(profile)$('shop-name').textContent=profile.name});
+$('logout').addEventListener('click',()=>stockLogout());
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=n=>Number(n||0).toLocaleString('fr-FR');
+const expiryDays=p=>p.expiration_date?Math.ceil((Date.parse(p.expiration_date+'T00:00:00Z')-Date.parse(new Date().toISOString().slice(0,10)+'T00:00:00Z'))/86400000):null;
+async function info(){const response=await fetch('/api/info');if(!response.ok)throw new Error('Informations serveur indisponibles');const result=await response.json();remoteUrl=result.scan_url||location.origin+'/scan';showScanLink()}
+function showScanLink(){
+ const link=$('scan-url');link.href=remoteUrl;link.textContent=remoteUrl;
+ try{new QRCode($('qr'),{text:remoteUrl,width:150,height:150})}catch(error){$('qr').textContent='QR indisponible'}
+}
+function setConnectionState(state,text){$('dot').className='dot '+state;$('last').textContent=text}
+async function load(){
+ try{const response=await fetch('/api/products');if(!response.ok)throw new Error('Chargement impossible');data=await response.json();setConnectionState('connected','Serveur prêt')}
+ catch(error){setConnectionState('disconnected','Hors ligne · nouvelle tentative…');return}
+ const cur={};data.forEach(p=>cur[p.id]=p.updated+'|'+p.qty);
+ if(seen){data.forEach(p=>{if(seen[p.id]!==cur[p.id]){flashIds.add(p.id);setTimeout(()=>{flashIds.delete(p.id);draw()},4000);
+   $('dot').classList.remove('pulse');void $('dot').offsetWidth;$('dot').classList.add('pulse');
+   $('last').textContent='Dernier scan : '+(p.name||p.code)}})}
+ seen=cur;draw()}
+function draw(){
+ const q=$('s').value.toLowerCase();
+ const rows=data.filter(p=>((p.code||'')+(p.name||'')).toLowerCase().includes(q));
+ $('b').innerHTML=rows.map(p=>{const days=expiryDays(p);const expiration=days===null?'<span class="code">—</span>':`<span class="expiry ${days<=7?'soon':'ok'}">${days<0?'Expiré':days===0?'Aujourd’hui':days+' j'} · ${esc(p.expiration_date)}</span>`;
+  return `<tr class="${flashIds.has(p.id)?'flash':''}"><td class="name" data-label="Produit">${esc(p.name)||'<span class="code">Sans nom</span>'}</td>
+  <td class="code" data-label="Code">${esc(p.code)}</td><td data-label="Expiration">${expiration}</td><td class="r" data-label="Prix">${fmt(p.price)}</td><td class="r" data-label="Quantité"><b>${p.qty}</b></td>
+  <td class="r" data-label=""><button class="del" title="Supprimer" aria-label="Supprimer" onclick="del(${p.id})">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14"/></svg></button></td></tr>`}).join('');
+ $('empty').hidden=data.length>0;
+ $('s1').textContent=fmt(data.length);
+ $('s2').textContent=fmt(data.reduce((a,p)=>a+p.qty,0));
+ $('s3').textContent=fmt(data.reduce((a,p)=>a+p.qty*p.price,0));
+ $('s4').textContent=fmt(data.filter(p=>p.qty>0&&expiryDays(p)!==null&&expiryDays(p)<=7).length);
+}
+async function del(id){if(confirm('Supprimer ce produit ?')){const r=await fetch('/api/products/'+id,{method:'DELETE'});if(!r.ok){alert('La suppression a échoué.');return}load()}}
+const startup=Promise.allSettled([info(),load()]);
+startup.finally(()=>{setTimeout(()=>$('splash').classList.add('hide'),420)});
+setInterval(load,5000);
+</script></body></html>

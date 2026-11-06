@@ -1,0 +1,62 @@
+STOCK · VERSION EN LIGNE (VERCEL)
+=================================
+
+Adresse de l'application :
+https://stock-local-one.vercel.app
+
+Dépôt GitHub :
+https://github.com/abdoulayeirving-lab/scanner-local
+
+
+1) CE QUI FONCTIONNE DÉJÀ EN LIGNE
+----------------------------------
+- Création de compte par email + mot de passe.
+- Connexion par Google (le bouton est actif).
+- Un stock séparé par boutique.
+- Scan des codes-barres depuis n'importe quel téléphone (/scan).
+- Produits, recherche, statistiques, export CSV.
+- Alertes d'expiration par notification Web Push (même application fermée),
+  envoyées automatiquement chaque jour à 8h UTC.
+- Page installable sur le téléphone (PWA).
+
+Base de données : PostgreSQL Neon, déjà connectée au projet Vercel.
+Les tables sont préfixées « stock_ » et sont indépendantes des autres projets.
+
+
+2) UNE SEULE CHOSE À FAIRE DANS GOOGLE CLOUD CONSOLE
+---------------------------------------------------
+La connexion Google ne fonctionnera qu'après avoir ajouté l'adresse de retour
+(URI de redirection) ci-dessous au client OAuth existant.
+
+Console : https://console.cloud.google.com/apis/credentials?project=scanne-513916
+Client OAuth : 968244243119-v5c6tme2kvfbpujdf23jfhj3gsa3vtks.apps.googleusercontent.com
+
+URI de redirection à ajouter (copier-coller exact) :
+https://stock-local-one.vercel.app/api/auth/google/callback
+
+Étapes :
+1. Ouvrir le client OAuth ( type « Application Web » ).
+2. Section « URI de redirection autorisés » → « Ajouter un URI ».
+3. Coller l'adresse ci-dessus, puis « Enregistrer ».
+4. Attendre 1 à 5 minutes.
+
+Les « Origines JavaScript autorisées » ne sont PAS nécessaires :
+la connexion Google est gérée côté serveur.
+
+Si l'écran de consentement OAuth est en mode « Test », ajoutez votre compte
+Google dans « Utilisateurs de test », sinon passez l'application en « Production ».
+
+
+3) NOTIFICATIONS
+----------------
+Sur chaque appareil : ouvrir l'application, se connecter, puis toucher
+« Activer les alertes » et autoriser les notifications.
+L'iPhone demande d'installer d'abord l'application sur l'écran d'accueil
+(Safari → Partager → « Sur l'écran d'accueil ») pour recevoir le Web Push.
+
+
+4) FICHIERS
+-----------
+- cloud/ ............ application Next.js déployée sur Vercel
+- server.py ......... application locale (Wi-Fi, certificat, scan hors ligne)
+- .env .............. identifiants Google du projet scanne-513916 (non publié)
