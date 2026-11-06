@@ -91,7 +91,7 @@ tr.flash td{animation:flash 4s ease-out}
  header{margin-bottom:12px}
  h1{font-size:25px}
  .live{font-size:12px}
- .scan-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+ .scan-actions{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:10px}
  .scan-actions .btn{white-space:normal;text-align:center;padding:9px 8px;font-size:13px}
  .remote-panel{align-items:flex-start;padding:12px;gap:10px}
  #qr{padding:6px}
@@ -130,6 +130,7 @@ tr.flash td{animation:flash 4s ease-out}
  <div class="scan-actions">
   <a class="btn" href="/scan">Scanner sur cet appareil</a>
   <a class="btn secondary" href="/scan" id="scan-link">Ouvrir le scanner sur le téléphone</a>
+  <button class="btn secondary" id="install-app" type="button" hidden>Installer l’appli</button>
  </div>
  <aside class="card connect remote-panel" id="remote-panel">
   <div id="qr"></div>
@@ -161,6 +162,12 @@ tr.flash td{animation:flash 4s ease-out}
 <script>
 let data=[],seen=null,flashIds=new Set(),scanUrl='';
 const $=i=>document.getElementById(i);
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',event=>{deferredPrompt=event;event.preventDefault();});
+const isMobile=()=>/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||window.matchMedia('(pointer: coarse)').matches;
+async function installApp(){if(!deferredPrompt)return;deferredPrompt.prompt();const choice=await deferredPrompt.userChoice;if(choice&&choice.outcome==='accepted')deferredPrompt=null}
+if(isMobile())$('install-app').hidden=false;
+$('install-app').addEventListener('click',installApp);
 stockLoadProfile().then(profile=>{if(profile)$('shop-name').textContent=profile.name});
 $('logout').addEventListener('click',()=>stockLogout());
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
