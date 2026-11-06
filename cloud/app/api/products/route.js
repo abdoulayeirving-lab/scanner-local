@@ -1,7 +1,7 @@
 import {NextResponse} from 'next/server';
 import {query} from '../../../lib/db';
 import {requireShop, unauthorized} from '../../../lib/auth';
-import {isValidDate, normalizeNumber, nowText} from '../../../lib/values';
+import {isValidDate, isValidMonthYear, normalizeNumber, nowText} from '../../../lib/values';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,7 +36,9 @@ export async function POST(request) {
     if (price !== null && price < 0) throw new Error('prix invalide');
     expiration = expirationProvided ? data.expiration_date : null;
     if (expiration) {
-      if (typeof expiration !== 'string' || !isValidDate(expiration)) throw new Error('date invalide');
+      if (typeof expiration !== 'string' || (!isValidMonthYear(expiration) && !isValidDate(expiration))) {
+        throw new Error('date invalide');
+      }
     }
   } catch {
     return NextResponse.json(

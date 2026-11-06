@@ -76,8 +76,8 @@ input:focus{outline:2px solid var(--mango);outline-offset:1px;border-color:trans
  <span class="tag new" id="tag">Nouveau produit</span>
  <p class="code" id="codeTxt"></p>
  <label for="name">Nom du produit</label><input id="name" placeholder="Ex. Huile 1 L" autocomplete="off">
- <label for="expiration">Date d’expiration</label><input id="expiration" type="text" inputmode="text" enterkeyhint="done" maxlength="10" placeholder="JJ/MM/AAAA" autocomplete="off" aria-describedby="expiration-help">
- <p class="help" id="expiration-help">Format fixe : jour/mois/année (ex. 05/11/2027). Alerte jusqu’à 7 jours avant l’expiration si les notifications sont activées.</p>
+ <label for="expiration">Date d’expiration</label><input id="expiration" type="text" inputmode="text" enterkeyhint="done" maxlength="7" placeholder="MM/AAAA" autocomplete="off" aria-describedby="expiration-help">
+ <p class="help" id="expiration-help">Format fixe : mois/année (ex. 11/2027). Alerte jusqu’à 7 jours avant l’expiration si les notifications sont activées.</p>
  <div class="row"><div><label for="price">Prix (FCFA)</label><input id="price" inputmode="decimal" placeholder="0"></div>
  <div><label for="qty">Quantité</label><div class="step"><button onclick="step(-1)" aria-label="Moins">−</button><input id="qty" inputmode="numeric" value="1"><button onclick="step(1)" aria-label="Plus">+</button></div></div></div>
  <div class="actions"><button class="btn" onclick="cancel()">Annuler</button><button class="btn main" onclick="save()">Enregistrer</button></div>
@@ -91,16 +91,14 @@ function cameraReady(){ $('hint').textContent='Toute l’image est disponible po
 function cameraFailed(message){$('hint').textContent=message;$('scanner-start-text').textContent=message;$('scanner-start').classList.add('hide')}
 function beep(){window.scannerBeep?.()}
 function step(d){const q=$('qty');q.value=Math.max(1,(parseInt(q.value)||1)+d)}
-function expirationToDisplay(value){return value?`${value.slice(8,10)}/${value.slice(5,7)}/${value.slice(0,4)}`:''}
+function expirationToDisplay(value){return value?`${value.slice(5,7)}/${value.slice(0,4)}`:''}
 function expirationToStorage(value){
  if(!value)return null;
- const match=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
- if(!match)throw new Error('Saisissez la date au format JJ/MM/AAAA.');
- const day=Number(match[1]),month=Number(match[2]),year=Number(match[3]);
- const leap=year%4===0&&(year%100!==0||year%400===0);
- const daysInMonth=[31,leap?29:28,31,30,31,30,31,31,30,31,30,31];
- if(year<1||month<1||month>12||day<1||day>daysInMonth[month-1])throw new Error('Cette date n’existe pas. Utilisez le format JJ/MM/AAAA.');
- return `${String(year).padStart(4,'0')}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+ const match=/^(\d{2})\/(\d{4})$/.exec(value);
+ if(!match)throw new Error('Saisissez la date au format MM/AAAA.');
+ const month=Number(match[1]),year=Number(match[2]);
+ if(month<1||month>12||year<1)throw new Error('Cette date n’existe pas. Utilisez le format MM/AAAA.');
+ return `${String(year).padStart(4,'0')}-${String(month).padStart(2,'0')}`;
 }
 $('expiration').addEventListener('keydown',event=>{
  if(event.key==='Enter'){event.preventDefault();event.currentTarget.blur()}
@@ -108,11 +106,10 @@ $('expiration').addEventListener('keydown',event=>{
 });
 $('expiration').addEventListener('input',event=>{
  const input=event.currentTarget;
- const digits=(input.value||'').replace(/\D/g,'').slice(0,8);
+ const digits=(input.value||'').replace(/\D/g,'').slice(0,6);
  let formatted='';
  if(digits.length>0)formatted=digits.slice(0,2);
  if(digits.length>2)formatted+='/'+digits.slice(2,4);
- if(digits.length>4)formatted+='/'+digits.slice(4,8);
  input.value=formatted;
  const caret=Math.min(formatted.length,event.target.selectionStart??formatted.length);
  input.setSelectionRange(caret,caret);

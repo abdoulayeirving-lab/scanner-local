@@ -7,7 +7,10 @@ export const maxDuration = 60;
 const ALERT_DAYS = 7;
 
 function daysLeft(dateText) {
-  const [year, month, day] = String(dateText).split('-').map(Number);
+  const parts = String(dateText).split('-').map(Number);
+  const year = parts[0];
+  const month = parts[1];
+  const day = parts.length > 2 ? parts[2] : 1;
   const expiry = Date.UTC(year, month - 1, day);
   const now = new Date();
   const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
